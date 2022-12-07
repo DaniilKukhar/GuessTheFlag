@@ -10,13 +10,7 @@ import SwiftUI
 struct ContentView: View {
     @State private var scoreTitle = ""
     @State private var showingScore = false
-    @State private var scoreAmount: Int = 0 {
-        willSet {
-            if newValue == -1 {
-                scoreAmount = 0
-            }
-        }
-    }
+    @State private var scoreAmount = 0
     
     @State var countries = ["Estonia", "France",
                      "Germany", "Ireland",
@@ -27,29 +21,54 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            LinearGradient(gradient: Gradient(colors: [.blue, .black]), startPoint: .top, endPoint: .bottom)
+            RadialGradient(stops: [
+                Gradient.Stop(color: Color(red: 0.1, green: 0.2, blue: 0.6), location: 0.3),
+                Gradient.Stop(color: Color(red: 0.75, green: 0.15, blue: 0.2), location: 0.3)
+            ], center: .top, startRadius: 200, endRadius: 700)
                 .ignoresSafeArea()
             
-            VStack(spacing: 30) {
-                VStack {
-                    Text("Tap the flag of")
-                        .foregroundColor(.white)
-                        .font(.subheadline.weight(.heavy))
-                    Text(countries[correctAnswer])
-                        .foregroundColor(.white)
-                        .font(.largeTitle.weight(.semibold))
-                }
-                ForEach(0..<3) { number in
-                    Button {
-                       flagTapped(number)
-                    } label: {
-                        Image(countries[number])
-                            .renderingMode(.original)
-                            .clipShape(Capsule())
-                            .shadow(radius: 5)
+            VStack {
+                
+                Spacer()
+                
+                Text("Guess the flag")
+                    .font(.largeTitle.bold())
+                    .foregroundColor(.white)
+                
+                VStack(spacing: 15) {
+                    VStack {
+                        Text("Tap the flag of")
+                            .foregroundColor(.secondary)
+                            .font(.subheadline.weight(.heavy))
+                        Text(countries[correctAnswer])
+                            .font(.largeTitle.weight(.semibold))
+                    }
+                    ForEach(0..<3) { number in
+                        Button {
+                           flagTapped(number)
+                        } label: {
+                            Image(countries[number])
+                                .renderingMode(.original)
+                                .clipShape(Capsule())
+                                .shadow(radius: 5)
+                        }
                     }
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 20)
+                .background(.regularMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                
+                Spacer()
+                Spacer()
+                
+                Text("Score: \(scoreAmount)")
+                    .foregroundColor(.white)
+                    .font(.title.bold())
+                
+                Spacer()
             }
+            .padding()
         }
         .alert(scoreTitle, isPresented: $showingScore) {
             Button("Continue", action: askQuestion)
@@ -63,9 +82,11 @@ struct ContentView: View {
         if number == correctAnswer {
             scoreTitle = "Correct"
             scoreAmount += 1
-        } else {
+        } else if number != correctAnswer && scoreAmount > 0 {
             scoreTitle = "Wrong"
             scoreAmount -= 1
+        } else {
+            scoreAmount = 0
         }
         showingScore = true
     }
