@@ -11,6 +11,15 @@ struct ContentView: View {
     @State private var scoreTitle = ""
     @State private var showingScore = false
     @State private var scoreAmount = 0
+    @State private var currentChoose = 0
+    @State private var gameIsOver = false
+    @State private var roundOfGame = 0 {
+        willSet {
+            if newValue == 8 {
+                gameIsOver = true
+            }
+        }
+    }
     
     @State var countries = ["Estonia", "France",
                      "Germany", "Ireland",
@@ -45,7 +54,8 @@ struct ContentView: View {
                     }
                     ForEach(0..<3) { number in
                         Button {
-                           flagTapped(number)
+                            flagTapped(number)
+                            currentChoose = number
                         } label: {
                             Image(countries[number])
                                 .renderingMode(.original)
@@ -69,12 +79,31 @@ struct ContentView: View {
                 Spacer()
             }
             .padding()
+            .alert("Game is Over", isPresented: $gameIsOver) {
+                Button("Restart game", action: reset)
+            } message: {
+                Text("Your score is \(scoreAmount)")
+                
+            }
         }
         .alert(scoreTitle, isPresented: $showingScore) {
             Button("Continue", action: askQuestion)
         } message: {
-            Text("You are score is \(scoreAmount)")
+            if scoreTitle.hasPrefix("Correct"){
+                Text("You are score is \(scoreAmount)")
+            } else {
+                Text("Wrong! That’s the flag of \(countries[currentChoose])")
+            }
         }
+    }
+    
+    func reset() {
+        countries.shuffle()
+        correctAnswer = Int.random(in: 0...2)
+        showingScore = false
+        scoreAmount = 0
+        gameIsOver = false
+        roundOfGame = 0
     }
     
     func flagTapped(_ number: Int) {
@@ -89,6 +118,7 @@ struct ContentView: View {
             scoreAmount = 0
         }
         showingScore = true
+        roundOfGame += 1
     }
     
     func askQuestion() {
